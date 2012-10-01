@@ -40,10 +40,10 @@
 
 @interface SheepEntity : NSManagedObject
 {
-    NSManagedObjectContext *currentContext;
+    NSManagedObjectContext *__strong currentContext;
 }
 
-@property (readwrite, assign) NSManagedObjectContext *currentContext;
+@property (readwrite, strong) NSManagedObjectContext *currentContext;
 
 #pragma mark -
 #pragma mark Initialization

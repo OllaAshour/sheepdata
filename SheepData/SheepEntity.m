@@ -105,11 +105,10 @@ void ShowError(NSString* action, NSError* error);
 	
 	NSError *error;
 	NSArray *results = [aContext executeFetchRequest:request error:&error];
-    [request release];
     
 	if ([results count] > 0)
 	{
-		return [results objectAtIndex:0];
+		return results[0];
 	}
 	return nil;
 }
@@ -136,11 +135,10 @@ void ShowError(NSString* action, NSError* error);
 	NSFetchRequest *request = [[NSFetchRequest alloc] init];
 	[request setEntity:tmpEntity];
     
-    if (sortDescriptor) [request setSortDescriptors:[NSArray arrayWithObject:sortDescriptor]];
+    if (sortDescriptor) [request setSortDescriptors:@[sortDescriptor]];
 	
 	NSError *error;
 	NSArray *results = [aContext executeFetchRequest:request error:&error];
-	[request release];
 	
 	return results;
 }
@@ -173,7 +171,7 @@ void ShowError(NSString* action, NSError* error);
 
 + (NSArray*) fetchEntitiesWithPredicate:(NSPredicate*) aPredicate andSortDescriptor:(NSSortDescriptor*) aSortDescriptor inContext:(NSManagedObjectContext*)aContext
 {
-    return [self fetchEntitiesWithPredicate:aPredicate andSortDescriptors:[NSArray arrayWithObject:aSortDescriptor] inContext:aContext];
+    return [self fetchEntitiesWithPredicate:aPredicate andSortDescriptors:@[aSortDescriptor] inContext:aContext];
 }
 
 + (NSArray*) fetchEntitiesWithPredicate:(NSPredicate*) aPredicate andSortDescriptors:(NSArray*) sortDescriptors
@@ -214,7 +212,6 @@ void ShowError(NSString* action, NSError* error);
 	
 	NSError *error;
 	NSArray *results = [aContext executeFetchRequest:request error:&error];
-    [request release];
 	return results;	
 }
 
@@ -266,9 +263,9 @@ void ShowError(NSString* action, NSError* error);
 + (NSString*) uniqueID;
 {
     CFUUIDRef uuidObj = CFUUIDCreate(nil);
-    NSString *newUUID = (NSString*) CFMakeCollectable(CFUUIDCreateString(nil, uuidObj));
+    NSString *newUUID = ( NSString*) CFBridgingRelease(CFUUIDCreateString(nil, uuidObj));
     CFRelease(uuidObj);
-    return [newUUID autorelease];
+    return newUUID;
 }
 
 #pragma mark -
@@ -325,19 +322,16 @@ void ShowError(NSString* action, NSError* error);
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:key ascending:NO];
     NSArray *sortDescriptors = [[NSArray alloc] initWithObjects:sortDescriptor, nil];
     [request setSortDescriptors:sortDescriptors];
-    [sortDescriptors release];
-    [sortDescriptor release];
     
     [request setFetchLimit:1];
     
     NSError *error = nil;
     NSArray *results = [aContext executeFetchRequest:request error:&error];
-    [request release];
     if (results == nil) 
     {
         ShowError(@"Error in fetchEntityWhithMaxValueForKey:andPredicate:\n", error);
     }
-    return [results objectAtIndex:0];
+    return results[0];
 }
 
 + (NSInteger) countWithPredicate:(NSPredicate*)aPredicate
@@ -370,7 +364,7 @@ void ShowError(NSString* action, NSError* error)
         return;
     
     NSLog(@"Failed to %@: %@", action, [error localizedDescription]);
-    NSArray* detailedErrors = [[error userInfo] objectForKey:NSDetailedErrorsKey];
+    NSArray* detailedErrors = [error userInfo][NSDetailedErrorsKey];
     if(detailedErrors && [detailedErrors count] > 0) 
 	{
         for(NSError* detailedError in detailedErrors) 

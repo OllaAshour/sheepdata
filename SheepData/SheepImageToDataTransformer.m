@@ -45,7 +45,7 @@
 
 - (id)transformedValue:(id)value 
 {
-    NSBitmapImageRep *rep = [[value representations] objectAtIndex: 0];
+    NSBitmapImageRep *rep = [value representations][0];
     NSData *data = [rep representationUsingType: NSPNGFileType
                                      properties: nil];
 	return data;
@@ -54,7 +54,7 @@
 - (id)reverseTransformedValue:(id)value 
 {
     NSImage *uiImage = [[NSImage alloc] initWithData:value];
-	return [uiImage autorelease];;
+	return uiImage;;
 }
 
 @end

@@ -60,7 +60,7 @@ static SheepDataManager *sharedSingleton;
             // The default folder will have the name of your Bundle and be in the user's application support library
             NSArray * bundleStringParts = [[[NSBundle bundleForClass:[self class]] bundleIdentifier] componentsSeparatedByString: @"."];
 			int last = (int)[bundleStringParts count] - 1 ;
-			NSString *targetString = [bundleStringParts objectAtIndex:last];
+			NSString *targetString = bundleStringParts[last];
 			sharedSingleton.coreDataFolder = targetString;
             
 			sharedSingleton.coreDataFilename = CORE_DATA_FILENAME;
@@ -79,25 +79,7 @@ static SheepDataManager *sharedSingleton;
     sharedSingleton.managedObjectModelName = targetString;
 }
 
-- (void) dealloc
-{
-	[coreDataFilename release];
-	[externalRecordExtension release];
-	[persistentStoreCoordinator release];
-	[managedObjectModel release];
-	[managedObjectContext release];
-	[super dealloc];
-}
 
-- (void) finalize
-{
-    coreDataFilename = nil;
-    externalRecordExtension = nil;
-    persistentStoreCoordinator = nil;
-    managedObjectModel = nil;
-    managedObjectContext = nil;
-    [super finalize];
-}
 
 #pragma mark -
 #pragma mark Application dir / ext. records
@@ -111,7 +93,7 @@ static SheepDataManager *sharedSingleton;
 - (NSString *) applicationSupportDirectory 
 {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
-    NSString *basePath = ([paths count] > 0) ? [paths objectAtIndex:0] : NSTemporaryDirectory();
+    NSString *basePath = ([paths count] > 0) ? paths[0] : NSTemporaryDirectory();
     return [basePath stringByAppendingPathComponent:coreDataFolder];
 }
 
@@ -124,7 +106,7 @@ static SheepDataManager *sharedSingleton;
 - (NSString *) externalRecordsDirectory 
 {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    NSString *basePath = ([paths count] > 0) ? [paths objectAtIndex:0] : NSTemporaryDirectory();
+    NSString *basePath = ([paths count] > 0) ? paths[0] : NSTemporaryDirectory();
 	basePath = [basePath stringByAppendingPathComponent:@"Metadata/CoreData/"];
 	basePath = [basePath stringByAppendingPathComponent:coreDataFolder];
 	return basePath;
@@ -150,7 +132,7 @@ static SheepDataManager *sharedSingleton;
 	}		
 	else
 	{
-		managedObjectModel = [[NSManagedObjectModel mergedModelFromBundles:nil] retain];   
+		managedObjectModel = [NSManagedObjectModel mergedModelFromBundles:nil];   
 	}
 	
     return managedObjectModel;
@@ -170,7 +152,7 @@ static SheepDataManager *sharedSingleton;
     if (!mom) 
 	{
         NSAssert(NO, @"Managed object model is nil");
-        NSLog(@"%@:%@ No model to generate a store from", [self class], _cmd);
+        NSLog(@"Managed object model is nil");
         return nil;
     }
 	
@@ -206,8 +188,8 @@ static SheepDataManager *sharedSingleton;
     // set store options to enable spotlight indexing
     NSMutableDictionary *storeOptions = [NSMutableDictionary dictionary];
 
-	[storeOptions setObject:[NSNumber numberWithBool:YES] forKey:NSMigratePersistentStoresAutomaticallyOption];
-	[storeOptions setObject:[NSNumber numberWithBool:YES] forKey:NSInferMappingModelAutomaticallyOption];
+	storeOptions[NSMigratePersistentStoresAutomaticallyOption] = @YES;
+	storeOptions[NSInferMappingModelAutomaticallyOption] = @YES;
 	
     persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel: mom];
     if (![persistentStoreCoordinator addPersistentStoreWithType:YOUR_STORE_TYPE 
@@ -216,7 +198,7 @@ static SheepDataManager *sharedSingleton;
 														options:storeOptions 
 														  error:&error]){
 		NSLog(@"CoreDataManager Error: %@", error);
-        [persistentStoreCoordinator release], persistentStoreCoordinator = nil;
+        persistentStoreCoordinator = nil;
         return nil;
     }    
 	
